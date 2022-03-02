@@ -27,3 +27,28 @@ export async function createReviews(formData) {
   const body = await response.json();
   return body;
 }
+
+export async function updateReview(id, formData) {
+  // throw new Error("테스트 에러");
+  const response = await fetch(`${BASE_URL}/film-reviews/${id}`, {
+    method: "PUT",
+    body: formData,
+  });
+  if (!response.ok) {
+    throw new Error("리뷰를 수정하는데 실패했습니다.");
+  }
+  const body = await response.json();
+  return body;
+}
+
+export async function deleteReview(id) {
+  // throw new Error("테스트 에러");
+  const response = await fetch(`${BASE_URL}/film-reviews/${id}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    throw new Error("리뷰를 삭제하는데 실패했습니다.");
+  }
+  const body = await response.json();
+  return body;
+}

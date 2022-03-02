@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createReviews } from "../api";
+import useAsync from "../hooks/useAsync";
 import FileInput from "./FileInput";
 import RatingInput from "./RatingInput";
 import "./ReviewForm.css";
@@ -11,13 +11,21 @@ const INITIAL_VALUES = {
   imgFile: null,
 };
 
-function ReviewForm({ onSubmitSuccess }) {
+function ReviewForm({
+  initialValues = INITIAL_VALUES,
+  initialPreview,
+  onCancel,
+  onSubmit,
+  onSubmitSuccess,
+}) {
+  const [values, setValues] = useState(initialValues);
+  const [isSubmit, submitError, onSubmitAsync] = useAsync(onSubmit);
+
   // const [title, setTitle] = useState("");
   // const [rating, setRating] = useState(0);
   // const [content, setContent] = useState("");
-  const [values, setValues] = useState(INITIAL_VALUES);
-  const [isSubmit, setIsSubmit] = useState(false);
-  const [submitError, setSubmitError] = useState(null);
+  // const [isSubmit, setIsSubmit] = useState(false);
+  // const [submitError, setSubmitError] = useState(null);
 
   // const handleTitleChange = (e) => {
   //   setTitle(e.target.value);
@@ -51,18 +59,21 @@ function ReviewForm({ onSubmitSuccess }) {
     formData.append("rating", values.rating);
     formData.append("content", values.content);
     formData.append("imgFile", values.imgFile);
-    let result;
+    const result = await onSubmitAsync(formData);
+    if (!result) return;
 
-    try {
-      setSubmitError(null);
-      setIsSubmit(true);
-      result = await createReviews(formData);
-    } catch (error) {
-      setSubmitError(error);
-      return;
-    } finally {
-      setIsSubmit(false);
-    }
+    // let result;
+    // try {
+    //   setSubmitError(null);
+    //   setIsSubmit(true);
+    //   result = await onSubmit(formData);
+    // } catch (error) {
+    //   setSubmitError(error);
+    //   return;
+    // } finally {
+    //   setIsSubmit(false);
+    // }
+
     const { review } = result;
     onSubmitSuccess(review);
     setValues(INITIAL_VALUES);
@@ -74,6 +85,7 @@ function ReviewForm({ onSubmitSuccess }) {
         name="imgFile"
         value={values.imgFile}
         onChange={handleChange}
+        initialPreview={initialPreview}
       />
       <input
         name="title"
@@ -93,6 +105,7 @@ function ReviewForm({ onSubmitSuccess }) {
       <button type="submit" disabled={isSubmit}>
         확인
       </button>
+      {onCancel && <button onClick={onCancel}>취소</button>}
       {submitError?.message && <div>{submitError.message}</div>}
     </form>
   );
